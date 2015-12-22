@@ -59,3 +59,89 @@ y_train <- read.table("UCI HAR Dataset/train/y_train.txt", header = TRUE)
 
 
 # Assign column headings as not in source text file
+# Bits added will need to update above
+
+
+libpath <- .libPaths("d:/R/packages")
+
+library(dplyr, libpath)
+library(tidyr, libpath)
+
+#These data sets hold the subject and the results
+subject_test <- read.table("C:/Users/lapinsma/Downloads/UCI HAR Dataset/test/subject_test.txt")
+x_test <- read.table("C:/Users/lapinsma/Downloads/UCI HAR Dataset/test/X_test.txt")
+y_test <- read.table("C:/Users/lapinsma/Downloads/UCI HAR Dataset/test/y_test.txt")
+
+
+# These data sets hold training labels against each subject?
+subject_train <- read.table("C:/Users/lapinsma/Downloads/UCI HAR Dataset/train/subject_train.txt")
+x_train <- read.table("C:/Users/lapinsma/Downloads/UCI HAR Dataset/train/X_train.txt")
+y_train <- read.table("C:/Users/lapinsma/Downloads/UCI HAR Dataset/train/y_train.txt")
+
+# Get activity label
+
+activity_label <- read.table("C:/Users/lapinsma/Downloads/UCI HAR Dataset/activity_labels.txt")
+
+# subset to get second column only
+
+# First give meaningful col headings
+
+colnames(activity_label ) <- cbind("Rownum","Activity_label")
+
+Activity_col <- activity_label %>% select(Activity_label)
+
+
+
+#Add features as colnames across x_test and x_train Use dplyr and tidyr to do this.
+
+features <- read.table("C:/Users/lapinsma/Downloads/UCI HAR Dataset/features.txt")
+
+
+
+
+# Change subject_test and train column headings
+
+
+
+# Reshape features dataframe using tidyr
+# First give meaningful col headings
+
+colnames(features) <- cbind("Rownum","Feature")
+
+# Subset to get second row only
+
+feature_col <- features %>% select(Feature)
+
+
+
+
+# Merge the test data
+
+# Merge the train data
+
+
+
+
+ncol(features)
+  
+
+dim(subject_test)
+dim(x_test)
+dim(y_test)
+
+
+dim(subject_train)
+dim(x_train)
+dim(y_train)
+
+dim(features)
+
+str(subject_test)
+str(x_test)
+str(y_test)
+
+ncol(x_test)
+
+min(subject_test)
+
+colnames(subject_test) <- "Subjects"
