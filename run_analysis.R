@@ -14,134 +14,119 @@
 
 # The first step is to set up R and download the download the source data.
 
+setwd("C:/Users/Geo/R projects/Coursera/")
 
 # Create new folder if not already created
 
 if(!file.exists("data")){
     
-    setwd("C:/Users/Geo/R projects/Coursera/")
-    
     dir.create("data")
     
-    setwd("C:/Users/Geo/R projects/Coursera/data")
+    # Download and unzip the data file
+    # This extracts the UCI HAR Dataset folder
+    
+    fileUrl <-  "https://d396qusza40orc.cloudfront.net/getdata%2Fprojectfiles%2FUCI%20HAR%20Dataset.zip"
+    
+    download.file(fileUrl, destfile = "gacdass2.zip")
+    
+    unzip ("gacdass2.zip", exdir = ".")
     
     
-}else {
-    
-    setwd("C:/Users/Geo/R projects/Coursera/data")
-    
-    }
+}
 
 print(getwd())
-
-# Download and unzip the data file
-# This extracts the UCI HAR Dataset folder
-
-fileUrl <-  "https://d396qusza40orc.cloudfront.net/getdata%2Fprojectfiles%2FUCI%20HAR%20Dataset.zip"
-
-download.file(fileUrl, destfile = "gacdass2.zip")
-
-unzip ("gacdass2.zip", exdir = ".")
 
 
 # Read in the six files from the test and train folders
 # test = subject_test.txt, X_test.txt, y_test.txt
 # train = subject_train.txt, X_train.txt, y_train.txt
-
-subject_test <- read.table("UCI HAR Dataset/test/subject_test.txt", header = TRUE)
-X_test <- read.table("UCI HAR Dataset/test/x_test.txt", header = TRUE)
-y_test <- read.table("UCI HAR Dataset/test/y_test.txt", header = TRUE)
+# header = False as there are no column headings in the files
 
 
-subject_train <- read.table("UCI HAR Dataset/train/subject_train.txt", header = TRUE)
-X_train <- read.table("UCI HAR Dataset/train/x_train.txt", header = TRUE)
-y_train <- read.table("UCI HAR Dataset/train/y_train.txt", header = TRUE)
+# load packages to manipulate data
+
+library(dplyr)
+#library(tidyr, libpath)
 
 
-# Assign column headings as not in source text file
-# Bits added will need to update above
+# Read in data
+
+subject_test <- tbl_df(read.table("UCI HAR Dataset/test/subject_test.txt", header = FALSE))
+
+X_test <- tbl_df(read.table("UCI HAR Dataset/test/x_test.txt", header = FALSE))
+
+y_test <- tbl_df(read.table("UCI HAR Dataset/test/y_test.txt", header = FALSE))
 
 
-libpath <- .libPaths("d:/R/packages")
+subject_train <- tbl_df(read.table("UCI HAR Dataset/train/subject_train.txt", header = FALSE))
 
-library(dplyr, libpath)
-library(tidyr, libpath)
+X_train <- tbl_df(read.table("UCI HAR Dataset/train/x_train.txt", header = FALSE))
 
-#These data sets hold the subject and the results
-subject_test <- read.table("C:/Users/lapinsma/Downloads/UCI HAR Dataset/test/subject_test.txt")
-x_test <- read.table("C:/Users/lapinsma/Downloads/UCI HAR Dataset/test/X_test.txt")
-y_test <- read.table("C:/Users/lapinsma/Downloads/UCI HAR Dataset/test/y_test.txt")
+y_train <- tbl_df(read.table("UCI HAR Dataset/train/y_train.txt", header = FALSE))
 
 
-# These data sets hold training labels against each subject?
-subject_train <- read.table("C:/Users/lapinsma/Downloads/UCI HAR Dataset/train/subject_train.txt")
-x_train <- read.table("C:/Users/lapinsma/Downloads/UCI HAR Dataset/train/X_train.txt")
-y_train <- read.table("C:/Users/lapinsma/Downloads/UCI HAR Dataset/train/y_train.txt")
+# Merge data frames
 
-# Get activity label
+subject_data <- bind_rows(subject_test, subject_train)
 
-activity_label <- read.table("C:/Users/lapinsma/Downloads/UCI HAR Dataset/activity_labels.txt")
+# X data
+features_data <- bind_rows(X_test, X_train)
 
-# subset to get second column only
-
-# First give meaningful col headings
-
-colnames(activity_label ) <- cbind("Rownum","Activity_label")
-
-Activity_col <- activity_label %>% select(Activity_label)
+ # Y data
+activity_data <- bind_rows(y_test, y_train)
 
 
+# Give meaningful column names and subset features by mean and standard deviation
+colnames(subject_data) <- "Subjects"
 
-#Add features as colnames across x_test and x_train Use dplyr and tidyr to do this.
+colnames(activity_data ) <- "Activity"
 
-features <- read.table("C:/Users/lapinsma/Downloads/UCI HAR Dataset/features.txt")
+colnames(feature_labels) <- cbind("Rownum","Feature")
 
 
 
+feature_labels <- tbl_df(read.table("UCI HAR Dataset/features.txt", header = FALSE))
 
-# Change subject_test and train column headings
+feature_labels <- feature_labels %>% select(Feature)
 
+names(features_data)<- feature_labels$Feature #Maps feature labels to feature data set
 
-
-# Reshape features dataframe using tidyr
-# First give meaningful col headings
-
-colnames(features) <- cbind("Rownum","Feature")
-
-# Subset to get second row only
-
-feature_col <- features %>% select(Feature)
+sub_features_data <- features_data[,grepl("mean\\(\\)|std\\(\\)", colnames(features_data))]
 
 
 
+# Combine to create one data set
 
-# Merge the test data
+subject_data <- arrange(subject_data, Subjects)
 
-# Merge the train data
-
-
-
-
-ncol(features)
-  
-
-dim(subject_test)
-dim(x_test)
-dim(y_test)
+activity_data <- arrange(activity_data, Activity)
 
 
-dim(subject_train)
-dim(x_train)
-dim(y_train)
+combined_data <- bind_cols(combine_subject_activity, sub_features_data)
 
-dim(features)
 
-str(subject_test)
-str(x_test)
-str(y_test)
+#make the activity numbers descriptive 
 
-ncol(x_test)
+combined_data$Activity <- as.character(combined_data$Activity)
+combined_data$Activity[combined_data$Activity == 1] <- "Walking"
+combined_data$Activity[combined_data$Activity == 2] <- "Walking Upstairs"
+combined_data$Activity[combined_data$Activity == 3] <- "Walking Downstairs"
+combined_data$Activity[combined_data$Activity == 4] <- "Sitting"
+combined_data$Activity[combined_data$Activity == 5] <- "Standing"
+combined_data$Activity[combined_data$Activity == 6] <- "Laying"
+combined_data$Activity <- as.factor(combined_data$Activity)
 
-min(subject_test)
 
-colnames(subject_test) <- "Subjects"
+# Make descriptive names
+names(combined_data)<-gsub("^t", "time", names(combined_data))
+names(combined_data)<-gsub("^f", "frequency", names(combined_data))
+names(combined_data)<-gsub("Acc", "Accelerometer", names(combined_data))
+names(combined_data)<-gsub("Gyro", "Gyroscope", names(combined_data))
+names(combined_data)<-gsub("Mag", "Magnitude", names(combined_data))
+names(combined_data)<-gsub("BodyBody", "Body", names(combined_data))
+
+
+# Create independent tidy data set with the average of each variable for each activity and each subject based on the data above.
+combined_data2<-aggregate(. ~Subjects + Activity, combined_data, mean)
+combined_data2<-combined_data2[order(combined_data2$Subjects,combined_data2$Activity),]
+write.table(combined_data2, file = "tidydata.txt",row.name=FALSE)
