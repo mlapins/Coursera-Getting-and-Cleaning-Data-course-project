@@ -8,13 +8,17 @@
 # 2. Extracts only the measurements on the mean and standard deviation for each measurement. 
 # 3. Uses descriptive activity names to name the activities in the data set
 # 4. Appropriately labels the data set with descriptive variable names.
+# 5. From the data set in step 4, creates a second, independent tidy data set with the average of each variable for each activity and each subject
 
-# Refer to XXXXX for the last part of this exercise in git hub.
+
+##########################################################################
+# 1. Merges the training and the test sets to create one data set
+# 2. Extract only the measurements on the mean and standard deviation for each measurement.
 
 
 # The first step is to set up R and download the download the source data.
 
-setwd("C:/Users/Geo/R projects/Coursera/")
+setwd("C:/R projects/Coursera/")
 
 # Create new folder if not already created
 
@@ -32,6 +36,10 @@ if(!file.exists("data")){
     unzip ("gacdass2.zip", exdir = ".")
     
     
+}else{
+    
+    setwd("C:/R projects/Coursera/data")
+    
 }
 
 print(getwd())
@@ -46,7 +54,6 @@ print(getwd())
 # load packages to manipulate data
 
 library(dplyr)
-#library(tidyr, libpath)
 
 
 # Read in data
@@ -81,30 +88,34 @@ colnames(subject_data) <- "Subjects"
 
 colnames(activity_data ) <- "Activity"
 
-colnames(feature_labels) <- cbind("Rownum","Feature")
 
-
-
+# Organise the features dataset
 feature_labels <- tbl_df(read.table("UCI HAR Dataset/features.txt", header = FALSE))
+
+colnames(feature_labels) <- cbind("Rownum","Feature")
 
 feature_labels <- feature_labels %>% select(Feature)
 
 names(features_data)<- feature_labels$Feature #Maps feature labels to feature data set
 
+
+
+# Extract mean and standard deviation measures only from the features data set
+
 sub_features_data <- features_data[,grepl("mean\\(\\)|std\\(\\)", colnames(features_data))]
 
 
+##############################################################################
+# Make one data set
 
-# Combine to create one data set
-
-subject_data <- arrange(subject_data, Subjects)
-
-activity_data <- arrange(activity_data, Activity)
+combine_subject_activity <- bind_cols(subject_data, activity_data)
 
 
 combined_data <- bind_cols(combine_subject_activity, sub_features_data)
 
 
+##############################################################################
+# 3. Uses descriptive activity names to name the activities in the data set
 #make the activity numbers descriptive 
 
 combined_data$Activity <- as.character(combined_data$Activity)
@@ -117,6 +128,9 @@ combined_data$Activity[combined_data$Activity == 6] <- "Laying"
 combined_data$Activity <- as.factor(combined_data$Activity)
 
 
+##############################################################################
+# 4. Appropriately labels the data set with descriptive variable names.
+
 # Make descriptive names
 names(combined_data)<-gsub("^t", "time", names(combined_data))
 names(combined_data)<-gsub("^f", "frequency", names(combined_data))
@@ -126,7 +140,12 @@ names(combined_data)<-gsub("Mag", "Magnitude", names(combined_data))
 names(combined_data)<-gsub("BodyBody", "Body", names(combined_data))
 
 
+#################################
+# From the data set in step 4, creates a second, independent tidy data set with the average of each variable for each activity and each subject
 # Create independent tidy data set with the average of each variable for each activity and each subject based on the data above.
+
+
 combined_data2<-aggregate(. ~Subjects + Activity, combined_data, mean)
 combined_data2<-combined_data2[order(combined_data2$Subjects,combined_data2$Activity),]
 write.table(combined_data2, file = "tidydata.txt",row.name=FALSE)
+
