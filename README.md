@@ -16,4 +16,4 @@ This script does the following:
 In this repository is:
 - run_analysis.R - This is the R code that performs the above tasks.
 - CodeBook.md - This file summarises the fields in the tidydata.tx
-- tidydata.txt - This is copy of the file uploaded for this assignment
+- tidydata.txt - This is copy of the file uploaded on the Coursera assignment page
